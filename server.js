@@ -1,6 +1,6 @@
 // Import required packages and files
 const express =  require('express');
-const db = require('./config/connection');
+const db = require('./config/connections');
 const routes = require('./routes');
 // Set up environment variables
 const PORT = process.env.PORT || 3001;

@@ -1,11 +1,11 @@
-const { Thought, User, Reaction } = require('../models');
+const { thought, user, reaction } = require('../models');
 const {Types} = require('mongoose');
 
-// Define the ThoughtController object, which contains methods for handling various API requests related to thoughts
-const ThoughtController = {
-  async getAllThoughts(req, res) {
+// Define the thoughtController object, which contains methods for handling various API requests related to thoughts
+const thoughtController = {
+  async getAllthoughts(req, res) {
     try {
-      const thoughts = await Thought.find({});
+      const thoughts = await thought.find({});
       res.json(thoughts);
     } catch (err) {
       res.status(500).json(err);
@@ -13,11 +13,11 @@ const ThoughtController = {
   },
 
   // Handler for the "get thought by ID" API endpoint
-  async getThoughtsById(req, res) {
+  async getthoughtsById(req, res) {
     try {
-      const thought = await Thought.findOne({_id:req.params.thoughtId});
+      const thought = await thought.findOne({_id:req.params.thoughtId});
       if (!thought) {
-        res.status(404).json({ message: 'Thought not found' });
+        res.status(404).json({ message: 'thought not found' });
       } else {
         res.json(thought);
       }
@@ -26,9 +26,9 @@ const ThoughtController = {
     }
   },
   // Handler for the "create thought" API endpoint
-  async createThought(req, res) {
+  async createthought(req, res) {
     try {
-      const thought = await Thought.create(req.body);
+      const thought = await thought.create(req.body);
       res.status(201).json(thought);
     } catch (err) {
       res.status(500).json(err);
@@ -36,9 +36,9 @@ const ThoughtController = {
   },
   
   // Handler for the "delete thought" API endpoint
-  async deleteThought(req,res) {
+  async deletethought(req,res) {
     try {
-        const thought = await Thought.findByIdAndDelete({_id:req.params.thoughtId});
+        const thought = await thought.findByIdAndDelete({_id:req.params.thoughtId});
         res.status(200).json(thought);
     } catch (err) {
         res.status(500).json(err);
@@ -46,13 +46,13 @@ const ThoughtController = {
   },
 
   // Handler for the "update thought by ID" API endpoint
-  async updateThoughtById(req, res) {
+  async updatethoughtById(req, res) {
     try {
-      const thought = await Thought.findByIdAndUpdate(req.params.thoughtId, req.body, {
+      const thought = await thought.findByIdAndUpdate(req.params.thoughtId, req.body, {
         new: true,
       });
       if (!thought) {
-        res.status(404).json({ message: 'Thought not found' });
+        res.status(404).json({ message: 'thought not found' });
       } else {
         res.json(thought);
       }
@@ -64,7 +64,7 @@ const ThoughtController = {
   // Handler for the "create reaction" API endpoint
   async createReaction(req, res) {
       try {
-        const thought = await Thought.findOneAndUpdate(
+        const thought = await thought.findOneAndUpdate(
             {_id:req.params.thoughtId},
             {$addToSet: {reactions: req.body}},
             {runValidators: true, new: true}
@@ -78,7 +78,7 @@ const ThoughtController = {
 // Handler for the "delete reaction" API endpoint
   async deleteReaction(req, res) {
       try {
-        const thought = await Thought.findOneAndUpdate(
+        const thought = await thought.findOneAndUpdate(
             {_id: req.params.thoughtId},
             {$pull: {reactions: {reactionId: req.params.reactionId}}},
             {runValidators: true, new: true}
@@ -91,5 +91,5 @@ const ThoughtController = {
   },
 
 };
-// Export ThoughtController
-module.exports = ThoughtController;
+// Export thoughtController
+module.exports = thoughtController;
