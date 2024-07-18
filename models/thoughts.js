@@ -15,8 +15,8 @@ const thoughtSchema = new Schema(
       get: (timestamp) => new Date(timestamp).toLocaleString(),
     },
     username: {
-      type: String,
       required: true,
+      type: String,
     },
     reactions: [reactionSchema],
   },

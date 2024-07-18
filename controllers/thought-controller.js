@@ -1,20 +1,20 @@
-const { thought, user, reaction } = require("../models");
+// const { thought, user, reaction, Thought } = require("../models");
 
-// Define the thoughtController object, which contains methods for handling various API requests related to thoughts
+const { Thought, User } = require("../models");
+
 const thoughtController = {
   async getAllThoughts(req, res) {
     try {
-      const thoughts = await thought.find({});
+      const thoughts = await Thought.find({});
       res.json(thoughts);
     } catch (err) {
       res.status(500).json(err);
     }
   },
 
-  // Handler for the "get thought by ID" API endpoint
   async getThoughtsById(req, res) {
     try {
-      const thought = await thought.findOne({ _id: req.params.thoughtId });
+      const thought = await Thought.findOne({ _id: req.params.thoughtId });
       if (!thought) {
         res.status(404).json({ message: "thought not found" });
       } else {
@@ -24,32 +24,43 @@ const thoughtController = {
       res.status(500).json(err);
     }
   },
-  // Handler for the "create thought" API endpoint
+
   async createThought(req, res) {
     try {
-      const thought = await thought.create(req.body);
+      const { thoughtText, username } = req.body;
+      const user = await User.findOne({ username });
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      const thought = new Thought({ thoughtText, username });
+      await thought.save();
+      user.thoughts.push(thought);
+      await user.save();
       res.status(201).json(thought);
     } catch (err) {
-      res.status(500).json(err);
+      console.error(err);
+      res.status(500).json({ message: "Error creating thought" });
     }
   },
-
   // Handler for the "delete thought" API endpoint
-  async deleteThought(req, res) {
+  async deleteThought (req, res) {
     try {
-      const thought = await thought.findByIdAndDelete({
-        _id: req.params.thoughtId,
-      });
-      res.status(200).json(thought);
-    } catch (err) {
-      res.status(500).json(err);
+      const thoughtId = req.params.thoughtId;
+      const thought = await Thought.findByIdAndDelete(thoughtId);
+      if (!thought) {
+        return res.status(404).json({ message: 'Thought not found' });
+      }
+      res.json({ message: 'Thought deleted successfully' });
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ message: 'Error deleting thought' });
     }
   },
 
   // Handler for the "update thought by ID" API endpoint
   async updateThoughtById(req, res) {
     try {
-      const thought = await thought.findByIdAndUpdate(
+      const thought = await Thought.findByIdAndUpdate(
         req.params.thoughtId,
         req.body,
         {
@@ -67,31 +78,42 @@ const thoughtController = {
   },
 
   // Handler for the "create reaction" API endpoint
-  async createReaction(req, res) {
+  async createReaction (req, res) {
     try {
-      const thought = await thought.findOneAndUpdate(
-        { _id: req.params.thoughtId },
-        { $addToSet: { reactions: req.body } },
-        { runValidators: true, new: true }
-      );
-      thought ? res.json(thought) : res.status(404).json({ message: notFound });
-    } catch (e) {
-      res.status(500).json(e);
+      const thoughtId = req.params.thoughtId;
+      const thought = await Thought.findById(thoughtId);
+      if (!thought) {
+        return res.status(404).json({ message: 'Thought not found' });
+      }
+      const reaction = new Reaction(req.body);
+      thought.reactions.push(reaction);
+      await thought.save();
+      res.json({ message: 'Reaction created successfully' });
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ message: 'Error creating reaction' });
     }
   },
 
   // Handler for the "delete reaction" API endpoint
   async deleteReaction(req, res) {
     try {
-      const thought = await thought.findOneAndUpdate(
-        { _id: req.params.thoughtId },
-        { $pull: { reactions: { reactionId: req.params.reactionId } } },
-        { runValidators: true, new: true }
-      );
-
-      thought ? res.json(thought) : res.status(404).json({ message: notFound });
-    } catch (e) {
-      res.status(500).json(e);
+      const thoughtId = req.params.thoughtId;
+      const reactionId = req.params.reactionId;
+      const thought = await Thought.findById(thoughtId);
+      if (!thought) {
+        return res.status(404).json({ message: 'Thought not found' });
+      }
+      const reactionIndex = thought.reactions.findIndex((reaction) => reaction._id.toString() === reactionId);
+      if (reactionIndex === -1) {
+        return res.status(404).json({ message: 'Reaction not found' });
+      }
+      thought.reactions.splice(reactionIndex, 1);
+      await thought.save();
+      res.json({ message: 'Reaction deleted successfully' });
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ message: 'Error deleting reaction' });
     }
   },
 };
