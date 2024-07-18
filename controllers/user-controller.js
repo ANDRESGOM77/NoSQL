@@ -64,26 +64,19 @@ const UserController = {
 
   // NEW 7. Remove friend from user's friend list
 
-  removeFriend({ params }, res) {
+  removeFriend(req, res) {
     User.findOneAndUpdate(
-      { _id: params.userId },
-      { $pull: { friends: params.friendId } },
+      { _id: req.params.userId },
+      { $pull: { friends: req.params.friendId } },
       { new: true }
     )
-      .then((dbUserData) => {
-        if (!dbUserData) {
-          return res.status(404).json({ message: "No user with this id!" });
+      .then((userData) => {
+        if (!userData) {
+          return res.status(404).json({ message: "User not found" });
         }
-        // check if friend was removed
-        const removed = !dbUserData.friends.includes(params.friendId);
-        // return response with appropriate message
-        if (removed) {
-          res.json({ message: "Friend removed successfully!", dbUserData });
-        } else {
-          res.json(dbUserData);
-        }
+        res.json(userData);
       })
-      .catch((err) => res.status(400).json(err));
+      .catch((err) => res.status(500).json(err));
   },
 };
 

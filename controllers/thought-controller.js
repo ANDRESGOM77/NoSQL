@@ -28,14 +28,22 @@ const thoughtController = {
   async createThought(req, res) {
     try {
       const { thoughtText, username } = req.body;
+      console.log(`Creating thought with text: ${thoughtText} and username: ${username}`);
+  
       const user = await User.findOne({ username });
       if (!user) {
+        console.error(`User not found with username: ${username}`);
         return res.status(404).json({ message: "User not found" });
       }
+  
       const thought = new Thought({ thoughtText, username });
       await thought.save();
+      console.log(`Thought created successfully: ${thought._id}`);
+  
       user.thoughts.push(thought);
       await user.save();
+      console.log(`Thought added to user's thoughts array`);
+  
       res.status(201).json(thought);
     } catch (err) {
       console.error(err);
@@ -78,16 +86,21 @@ const thoughtController = {
   },
 
   // Handler for the "create reaction" API endpoint
-  async createReaction (req, res) {
+  async createReaction(req, res) {
     try {
       const thoughtId = req.params.thoughtId;
+      console.log(`Thought ID: ${thoughtId}`); // Log the thoughtId to verify
+  
       const thought = await Thought.findById(thoughtId);
       if (!thought) {
+        console.error(`Thought not found with ID: ${thoughtId}`);
         return res.status(404).json({ message: 'Thought not found' });
       }
+  
       const reaction = new Reaction(req.body);
       thought.reactions.push(reaction);
       await thought.save();
+  
       res.json({ message: 'Reaction created successfully' });
     } catch (error) {
       console.error(error);
